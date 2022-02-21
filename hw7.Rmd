@@ -1,0 +1,283 @@
+---
+title: "Homework 7"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(lme4)
+pizza = read.csv("pizza.csv") 
+pizza$brand = as.factor(pizza$brand)
+exercise = read.csv("strengthexercise.csv")
+```
+
+Problem 1 
+
+a) People probably like the cal variables and the prot variable because they are interested in seeing how much calories there are as well as knowing how much protein there is. 
+
+b) We see symmetry in the diagaons which is the variances 
+We see a lot of negatives along the carb variables compared to other variables 
+```{r}
+Sigma = cov(pizza[,3:9])
+```
+
+
+c) The 7 eigenvalues are 4.215885e+02 1.018202e+02 1.682525e+01 1.844263e-01 8.373732e-03 1.037166e-03 2.438317e-04. 
+The first three eigenvalues has 99.964% variability 
+For the PC1, the highest numbers are mois, prot, and fat, while the lowest are ash, sodium, carb, and cal 
+For the PC2, there is negative numbers for mois and carb 
+```{r}
+pca = prcomp(pizza[,3:9], scale = FALSE)
+pca
+print(summary(pca))
+```
+
+d) They both equal 540.4281
+```{r}
+sum(diag(Sigma))
+
+eigenvalue = (pca$sdev)^2
+sum(eigenvalue)
+```
+
+
+e) Based on the screeplot, you would retain PC1, PC2, PC3. 
+Based on the rule of thumb from the lecture, you would retain PC1, PC2, and PC3 using eigenvalue > 1 
+```{r}
+screeplot(pca, type = "lines") 
+summary(pca)
+```
+
+
+f) The pattern is the carb has still negative correlation with other variables similar to covariance matrix seen earlier. 
+```{r}
+Sigma2 = cor(pizza[,3:9])
+Sigma2
+```
+
+g) From the results, we see that first three eigenvalues account for 0.98240
+The 7 eigenvalues are 4.171782e+00 2.290457e+00 4.145623e-01 9.517423e-02 2.767702e-02 3.376094e-04 9.518780e-06
+From the PC1, we see all positive numbers except for carb, whereas in PC2, we see mois, prot, and ash as the only negative numbers. 
+
+```{r}
+pca2 = prcomp(pizza[,3:9], scale = TRUE)
+pca2
+print(summary(pca2))
+
+```
+
+h) They both have 7 
+```{r}
+sum(diag(Sigma2))
+
+eigenvalue2 = (pca2$sdev)^2
+sum(eigenvalue2)
+```
+
+
+
+i) Based on the Screeplot, you should retain PC1, PC2, PC3, and as for the rule of thumb from the lectures, we should retain PC1 and PC2 using eigenvalue > 1
+```{r}
+screeplot(pca2, type = "lines") 
+summary(pca2)
+```
+
+
+
+j) We would want to use correlation because we see that the variance for carb is a lot higher than sodium. Therefore, scaling the variable seems appropriate. 
+
+
+k) Brand A
+```{r}
+PC1 = pca$x[,1]
+PC2 = pca$x[,2]
+
+#plot(PC1, PC2, col = pizza$brand, main = "Reduced-dimension Pizza", xlab = "First PC Score", ylab = "Second PC Score") 
+#legend("topright", cex = 0.4,  legend = c("A", "B", "C", "D", "E", "F", "G", "H" ,"I", "J"))
+
+ggplot(pizza, aes(PC1,PC2, col = brand)) +geom_point()
+```
+
+l) That tells us that people like high sodium and fat pizzas 
+
+
+
+Problem 2 
+
+```{r}
+library("lmerTest")
+library("MASS")
+data(Sitka, package = "MASS")
+Sitka$tree = as.factor(Sitka$tree)
+Sitka$treat = as.factor(Sitka$treat)
+summary(Sitka)
+```
+
+a) 
+```{r}
+interaction.plot(Sitka$Time,Sitka$treat, Sitka$size, xlab = "Time", ylab = "Size", col = c(1,2))
+```
+
+b) We can see that the correlations are pretty high and are positive 
+```{r}
+Sitka_wide = spread(Sitka, Time, size) 
+Sitka_wide
+sigmas = cor(Sitka_wide[,3:7])
+sigmas
+```
+
+
+c) Final model is model 1 where size = treat * Time + (1|tree) 
+It's an interaction model 
+```{r}
+model0 = lmer(size~treat + Time +(1|tree), data = Sitka)
+summary(model0) 
+
+model1 = lmer(size~treat * Time + (1 |tree), data = Sitka) 
+summary(model1) 
+
+anova(model0, model1)
+```
+
+
+d) Comparing the ICC to correlation matrix in part b, we see that both are close to each other. 
+ICC tells us that the percentage of random variation attributable to the random intercept, i.e. the underlying size of the tree is 90.77769% 
+```{r}
+print(summary(model1), correlation = TRUE) 
+sigmas
+
+(icc1 = 0.36991/(0.36991+0.03758) )
+```
+
+e) The size prediction of tree 1 at 258 days are 6.545401
+
+```{r}
+coef(model1) 
+tree1 = 2.122 + 0.2216775 + (0.01414724 * 258) + (--0.00213851 * 258) 
+tree1
+```
+
+
+f) We meet the assumptions 
+```{r}
+ranef(model1) 
+randint = ranef(model1)$tree[["(Intercept)"]]
+qqnorm(randint, main = "Rain Intercept") 
+qqline(randint) 
+
+res = residuals(model1) 
+qqnorm(res, main = "Residuals") 
+qqline(res) 
+
+plot(model1, xlab = "Fitted Value", ylab = "Residuals", main = "Const Variance ASsumption")
+```
+
+
+
+Problem 3 
+
+a) Generally, it looks like there is not a huge differences among the three different groups just by looking at the plots. 
+But it we had to pick one group, I would say the WI group had a slight increase for some subjects as they progressed through the weeks. 
+```{r}
+exercise_long = gather(exercise, y, strength, y.0:y.12, factor_key = TRUE)
+
+library(lattice)
+xyplot(strength ~ y| as.factor(id), data = exercise_long, auto.key = TRUE, groups = group)
+```
+
+
+
+b) All the groups except for CONT saw an increase in the means of strength. 
+Also, we see that WI had the highest strength mean to start out with, so it makes sense that it ended with WI with the highest strength. 
+```{r}
+aggregate(exercise[, 3:9], list(exercise$group), mean)
+aggregate(exercise[, 3:9], list(exercise$group), sd)
+aggregate(exercise[, 3:9], list(exercise$group), var)
+var(exercise[,3:9])
+```
+
+c) We get the same variance calculated from part b 
+```{r}
+cov(exercise[,3:9])
+```
+
+d) 
+```{r}
+13.641604-12.776316
+```
+
+e) If we said that the data weren't correlated and assumed that timepoints are independent, then we would have zero correlation. 
+Therefore, the variance difference would be 0
+
+
+f) We see that all the correlation values are pretty high, therefore, it can indicate that different weeks are highly correlated to one another. 
+```{r}
+cor(exercise[,3:9])
+```
+
+g) CONT = 79.7500 + 0.2000(y.2) + 0.2500(y.4) + 0.3000(y.6) + 0.0500(y.8) + -0.1500(y.10) + -0.1500(y.12)
+
+WI = 79.7500 + -0.0625 (WI) + 0.2000(y.2) + 0.2500(y.4) + 0.3000(y.6) + 0.0500(y.8) + -0.1500(y.10) + -0.1500(y.12) + 0.4190(y.2:groupWI) + 0.6548(y.4:groupWI) + 1.2714(y.6:groupWI) + 1.5214(y.8:groupWI) + 1.8167(y.10:groupWI) + 2.0548(y.12:groupWI)
+
+RI = 79.7500 +  1.2976(RI) + 0.2000(y.2) + 0.2500(y.4) + 0.3000(y.6) + 0.0500(y.8) + -0.1500(y.10) + -0.1500(y.12) + 0.6750(y.2:groupRI) + 0.8750(y.4:groupRI) + 1.0125(y.6:groupRI) +  1.4500(y.8:groupRI) + 1.7125(y.10:groupRI) + 1.7125(y.12:groupRI)
+```{r}
+mod0 = lmer(strength ~ y + group + (1|id), data = exercise_long)
+summary(mod0)
+
+mod1 = lmer(strength ~ y * group + (1|id), data = exercise_long)
+summary(mod1)
+
+anova(mod0, mod1)
+```
+
+h) From the correlation matrix computed in part f, we see that it's pretty similar with the ICC because they all are around the range between 0.8 and 0.9
+```{r}
+9.397/((9.397)+1.155)
+```
+
+i) Mod3 is the best model, which is the interaction model 
+
+```{r}
+mod2 = lmer(strength ~ y+group + (group|id), data = exercise_long)
+summary(mod2)
+
+mod3 = lmer(strength ~ y*group + (group|id), data = exercise_long)
+summary(mod3)
+
+anova(mod2, mod3)
+```
+
+j) 
+CONT = 79.7500 + 0.2000(y.2) + 0.2500(y.4) + 0.3000(y.6) + 0.0500(y.8) + -0.1500(y.10) + -0.1500(y.12)
+
+WI = 79.7500 + -0.0625 (WI) + 0.2000(y.2) + 0.2500(y.4) + 0.3000(y.6) + 0.0500(y.8) + -0.1500(y.10) + -0.1500(y.12) + 0.4190(y.2:groupWI) + 0.6548(y.4:groupWI) + 1.2714(y.6:groupWI) + 1.5214(y.8:groupWI) + 1.8167(y.10:groupWI) + 2.0548(y.12:groupWI)
+
+RI = 79.7500 +  1.2976(RI) + 0.2000(y.2) + 0.2500(y.4) + 0.3000(y.6) + 0.0500(y.8) + -0.1500(y.10) + -0.1500(y.12) + 0.6750(y.2:groupRI) + 0.8750(y.4:groupRI) + 1.0125(y.6:groupRI) +  1.4500(y.8:groupRI) + 1.7125(y.10:groupRI) + 1.7125(y.12:groupRI)
+
+
+k) Random intercept model fits the data better 
+```{r}
+anova(mod1, mod3)
+```
+
+l) Normality does not look perfect, but doesn't look bad. There is constant variance in residual 
+```{r}
+ranef(mod1) 
+randint2 = ranef(mod1)$id[["(Intercept)"]]
+qqnorm(randint2, main = "Rain Intercept") 
+qqline(randint2) 
+
+res2 = residuals(model1) 
+qqnorm(res2, main = "Residuals") 
+qqline(res2) 
+
+plot(mod1, xlab = "Fitted Value", ylab = "Residuals", main = "Const Variance ASsumption")
+```
+
+
+m) comparing the three groups, we saw that we got higher predictions throughout the weeks for WI training method compared to CONT and RI. Therefore, to answer the research objective, we can say that WI gave the highest strength measurement. 
+
+

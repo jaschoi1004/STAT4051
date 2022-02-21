@@ -1,0 +1,184 @@
+---
+title: "HW 5"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+ex13.2=read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/ex13.2",header=TRUE)
+ex13.2$batch = as.factor(ex13.2$batch)
+```
+
+
+Problem 1 
+
+a) The variance component estimate is 5.423713
+
+```{r}
+ex13.2$batch = as.factor(ex13.2$batch)
+ex13.2$temp = as.factor(ex13.2$temp)
+ex13.2$pH = as.factor(ex13.2$pH)
+ex13.2$sugar = as.factor(ex13.2$sugar)
+```
+
+```{r}
+library(MASS)
+mod1 = aov(y ~ batch+temp + pH + sugar, data = ex13.2)
+summary(mod1)
+plot(mod1)
+
+boxcox(mod1, lambda = seq(0,3))
+
+mod11 = (aov(y^1.5~batch + temp + pH + sugar, data = ex13.2))
+summary(mod11)
+plot(mod11)
+
+## We can see that by doing the Box-Cox, our residuals are much better, and we meet the normalality assumption. 
+
+
+(batch_var = (580 - 227)/12)
+(sqrt(batch_var))
+```
+
+b)  batch variance = 29.43; batch sd = 5.425  
+
+```{r}
+library(lme4)
+mod2 = lmer(y^1.5~ temp + pH + sugar + (1|batch), data = ex13.2)
+summary(mod2)
+```
+
+
+c) We see that in part a and b, they produced similar results of 1.35. This is because the data is balanced, therefore the estimates align. 
+
+
+d) ICC = 0.114719
+```{r}
+ICC = 29.43/(29.43+227.11)
+ICC
+```
+e) ICC is the correlation of observations within a treatment group, therefore, because we see a low value, this might mean that there is not a similarity between observations within the same treatment group 
+
+
+f)
+Hypotheses: 
+Ho:  σ2α = 0 vs. H1 : σ2α > 0
+Ha: σ2α > 0
+
+
+Test statistic/p-value
+
+We see a p-value greater than 0.05, therefore, we fail to reject the null hypothesis and conclude that there is not significant evidence of nonzero variability between batches. 
+```{r}
+library(RLRsim)
+exactRLRT(mod2)
+```
+g) We look at the sig01, and see that 0 is included in the interval, therefore, we fail to reject, which is the same as the results that we got in part f
+```{r}
+confint(mod2)
+```
+
+h) None of the factors nor combination of factors were significant that led to effecting the graininess 
+
+
+
+
+
+Problem 2 
+
+a) We see that the data is balanced
+```{r}
+data1 = read.csv("thermal.impedance.csv")
+data1$inspector = as.factor(data1$inspector)
+data1$test = as.factor(data1$test)
+data1$ï..part = as.factor(data1$ï..part)
+
+summary(data1)
+```
+
+
+
+```{r}
+model.aov = aov(impedance ~ ï..part + inspector, data = data1)
+summary(model.aov)
+
+# check assumptions
+## we see that the assumptions are pretty much met for normality and constant variance
+par(mfrow=c(2,2))
+plot(model.aov)
+par(mfrow=c(2,2))
+```
+
+
+b) 
+```{r}
+mod3 = aov(impedance ~ ï..part + inspector + ï..part:inspector, data = data1)
+summary(mod3)
+```
+```{r}
+## variance component estimate 
+
+
+## EMS(AB)
+(2.6-0.5)/9
+
+# EMS(A)
+(438.8 - 0.5 - (9*0.2333333))/(9*3)
+
+# EMS(B)
+(19.9 - 0.5 -(9*0.2333333))/(9*6)
+```
+
+c) 0.6993 - ï..part:inspector variance
+48.4639 - ï..part variance
+0.5749 - inspector variance
+```{r}
+model.new = lmer(impedance ~ test +(1|ï..part) + (1|inspector) + (1|ï..part:inspector), data = data1) 
+summary(model.new)
+```
+
+d) From the results, we see that all the values are less than 0.05, so it's statistically significant.
+We conclude there is significant evidence of nonzero variability between part and inspector. 
+
+H0 : σ2α = 0
+H1 : σ2α > 0
+
+
+```{r}
+
+no.part = lmer(impedance ~ test + (1|inspector) + (1|ï..part:inspector), data = data1)
+part = lmer(impedance ~ test + (1|ï..part), data = data1) 
+exactRLRT(part,model.new, no.part )
+
+
+no.inspector = lmer(impedance ~ test + (1|ï..part) + (1|inspector:ï..part), data = data1)
+inspector = lmer(impedance ~ test+ (1|inspector), data = data1) 
+exactRLRT(inspector, model.new, no.inspector)
+
+
+no.part.by.inspector = lmer(impedance ~ test +(1|ï..part) + (1|inspector), data = data1)
+part.by.inspector = lmer(impedance ~ test+(1|ï..part:inspector), data = data1) 
+exactRLRT(part.by.inspector, model.new, no.part.by.inspector)
+```
+
+
+e) We see that sig01, sig02, sig03 do not contain 0, so we reject the null hypothesis, which is the same result that we got in part d
+```{r}
+confint(model.new)
+```
+
+Bonus
+
+
+
+
+
+
+
+
+
+
+
+
+

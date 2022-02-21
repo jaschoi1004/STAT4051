@@ -1,0 +1,178 @@
+---
+title: "hw8"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(MPV)
+data(p13.5,package="MPV")
+attach(p13.5)
+```
+
+Problem 1 
+
+
+a) Model 2 is a better predictor of the vehicle purchase because there is less residual deviance in mod2 than mod1. 
+
+```{r}
+
+p13.5$y = as.factor(p13.5$y)
+mod1 = glm(y ~ x1, family = "binomial", data = p13.5)
+summary(mod1)
+
+mod2 = glm(y~x2, family = "binomial", data = p13.5)
+summary(mod2)
+
+anova(mod1, mod2, test = "Chisq")
+```
+
+b) We see that mod2 is better with vehicle age as the predictor because our p-value is not significant
+```{r}
+mod3 = glm(y ~ x1 + x2, family = "binomial", data = p13.5)
+summary(mod3)
+
+anova(mod2, mod3, test = "Chisq")
+```
+
+c) The probability of purchasing a new vehicle increases with increasing vehicle age 
+B1:  0.555968 
+for every 1 unit increase in vehicle age, the log odds increases by 0.555968
+```{r}
+coef(mod2)
+```
+
+d) Adding the interaction term is better than the previous model beccause our pvalue is less than 0.05
+```{r}
+mod4 = glm(y ~ x1 * x2, family = "binomial", data = p13.5)
+summary(mod4)
+
+anova(mod2, mod4, test = "Chisq")
+```
+
+e) null_deviance =  27.72588
+residual_deviance =  16.5508
+```{r}
+sat = glm(y~as.factor(1:length(y)), data = p13.5, family = "binomial")
+
+residual_deviance = 2*(logLik(sat) - logLik(mod4))
+
+
+null = glm(y~1, data =p13.5, family = "binomial")
+logLik(null)
+
+null_deviance = 2*(0--13.86294)
+```
+
+
+f) AIC = 24.5508
+```{r}
+residual_deviance+2*4
+```
+
+g) The estimated probability is 0.9886166 
+```{r}
+predict(mod4, data.frame(x1 = 45000, x2 = 5), type = "response")
+```
+
+Problem 2 
+```{r}
+data(p13.4,package="MPV")
+attach(p13.4)
+```
+
+a) With every 1 unit increase in x, the log odds increases by 0.1357274
+We also see that when there's more discount on the coupons, people redeem more coupons
+```{r}
+p13.4$prop = p13.4$r/p13.4$n
+p13.4$nr = n-r
+
+mod5 = glm(cbind(r,nr) ~ x, data = p13.4, family = "binomial")
+summary(mod5)
+coef(mod5)
+```
+
+b) 15.35986
+```{r}
+log(0.5/0.5)
+discount1 = -( -2.0847543 - log(0.5/0.5)) /  0.1357274 
+```
+
+
+c) 25.57368
+```{r}
+log(0.8/0.2) 
+discount2 = -(-2.0847543 - log(0.8/0.2)) / 0.1357274 
+```
+
+
+
+Problem 3 
+
+```{r}
+library(alr4)
+data(Downer,package="alr4")
+attach(Downer)
+```
+
+
+
+
+a) The coefficient for inflamat is negative. This means that the probability of outcome of animals decreases when the inflamat is present. 
+```{r}
+
+Downer$outcome = as.factor(Downer$outcome)
+Downer$inflamat = as.factor(Downer$inflamat)
+
+mod6 = glm(outcome ~ inflamat, family = "binomial", data = Downer)
+summary(mod6)
+
+coef(mod6)
+```
+
+b) The probability that a cow with inflammation will survive is 30.61%
+0.3061224
+```{r}
+prob_yes = predict(mod6, data.frame(inflamat="yes"), type = "response", data = p13.4)
+```
+
+c) The probability that a cow without inflammation will survive is 44.73%
+
+0.4473684 
+```{r}
+prob_no = predict(mod6, data.frame(inflamat="no"), type = "response", data = p13.4)
+
+```
+
+
+d) The odds ratio was -0.6070, so having inflamat is more likely to survive 0.54 times than not having inflamat
+```{r}
+oddsratio = exp(-0.6070)
+```
+
+e) Agrees with part d
+```{r}
+table(Downer$inflamat, Downer$outcome)
+
+or = (30/68) / (17/21)
+oddsratio
+```
+
+
+f) 
+```{r}
+log(17/21)
+```
+
+g) Outcome = 0.5284900 + (-0.6478436)inflamatyes + (-0.0002848)ck
+```{r}
+mod7 = glm(outcome ~ inflamat + ck, data = Downer, family = "binomial")
+summary(mod7)
+```
+
+
+
+
+
+

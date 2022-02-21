@@ -1,0 +1,350 @@
+---
+title: "STAT 4051 HW 2"
+author: "Jong Hyun Choi"
+date: "9/26/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+Question 1
+
+a) 
+Assumption: None
+
+Hypotheses
+Ho: no difference between the number of times dog sits for subjects who has cancer than subject who does not have cancer
+Ha: Dogs are more likely to sit for subject who has cancer than subjects that don't have cancer 
+
+```{r}
+control = c(rep(0,99), rep(1,11))
+cancer = c(rep(0, 10), rep(1,90))
+
+obs.diff = mean(cancer) - mean(control) 
+combined = c(control, cancer)
+
+diffprop = numeric(5000)
+
+for (i in 1:5000)
+{
+  rand.combined = sample(combined) 
+  rand.control = rand.combined[1:110]
+  rand.cancer = rand.combined[111:210]
+  diffprop[i] = mean(rand.cancer) - mean(rand.control)
+}
+
+hist(diffprop) ## We see that the historgram is bell-shaped and symmetric
+
+p_value = mean(diffprop >= obs.diff)
+p_value
+```
+
+Conclusion: Because our pvalue is 0, which is less than our significance level of 0.01, we reject the null hypothesis. Therefore, there is significant evidence that the dogs are more likely to sit for the cancer breath samples than the control samples. 
+
+
+b) We are 99% confident that the true difference between the two groups is (0.698, inf)
+```{r}
+n = 5000
+
+control.dist = rep(NA, n)
+cancer.dist = rep(NA, n)
+boot.dist.diff = rep(NA, n)
+
+for (i in 1:n)
+{
+  boot.sample.1 = sample(cancer, 100, replace = TRUE)
+  cancer.dist[i]= mean(boot.sample.1)
+  
+  boot.sample.2 = sample(control, 110, replace = TRUE)
+  control.dist[i] = mean(boot.sample.2)
+  boot.dist.diff[i] = cancer.dist[i] - control.dist[i]
+}
+
+hist(boot.dist.diff) ## We see that the histogram is bell-shaped and symmetric 
+sd(boot.dist.diff)
+```
+
+
+```{r}
+quantile(boot.dist.diff, 0.01)
+```
+
+
+
+Problem 2
+
+Hypotheses
+Ho: Mean shelf life is 120 days
+Ha: Mean shelf life is greater than 120 days
+
+Assumption: the data is independent. 
+
+a) We see that the p-value is 0.0338, which is lower than 0.05 significance level, so we reject the null hypothesis. Therefore, we have significant evidence that the mean shelf life exceeds 120 days
+```{r}
+data1 = c(108,124,124,106,115,138,163,159,134,139)
+mean(data1)
+
+
+n = 5000
+rand.dist = rep(NA, n)
+adjusted.data = data1 - 11
+
+for (i in 1:n)
+{
+  rand.sample = sample(10, replace = TRUE)
+  rand.dist[i] = mean(adjusted.data[rand.sample])
+}
+
+pval = mean(rand.dist>=131)
+pval
+```
+
+
+b) Our 95% bootstrap t-confidence interval is (117.7384 , inf). Because the interval includes 120, we would fail to reject the null hypothesis in part a (there is no significant evidence that the mean shelf life exceeds 120 days), which is different from the answer that we got in part a. 
+
+```{r}
+set.seed(4051) 
+
+n = 5000
+boot.dist = rep(NA, n) 
+
+for (i in 1:n)
+{
+  boot.sample = sample(data1, 10, replace = TRUE) 
+  boot.dist[i] = mean(boot.sample)
+}
+
+hist(boot.dist)  ## We see that the histogram is bell-shaped and symmetric 
+```
+
+
+```{r}
+lower = mean(data1) + qt(0.025,9)*sd(boot.dist)
+lower
+```
+
+
+
+Problem 3
+a)
+Assumption: independent  
+
+Hypotheses: 
+Ho: There is no difference between the two types of plastic 
+Ha: plastic 1 breaking strength exceeds that of plastic 2 by 10 
+
+
+Conclusion: We are 99% confident the difference between the two groups is (4.014, inf). And because 10 is in the confidence interval, we fail to reject the null hypothesis. 
+```{r}
+n1=10; n2 = 12; y1 = 162.5; y2 = 155; s1 =1 ; s2 = 1.05
+
+mean = y1-y2
+mean
+
+library(MASS)
+num = 5000
+delta.star = rep(NA, num) 
+diff = rep(NA,num)
+for (i in 1:num)
+{
+  sim_pho1 = rnorm(n1, y1, sqrt(s1))
+  sim_pho2= rnorm(n2, y2, sqrt(s2)) 
+  diff[i] = mean(sim_pho1) - mean(sim_pho2) - 10
+}
+
+hist(diff) ## histogram is bell-shaped and symmetric 
+
+
+conf = mean + quantile(diff, 0.01)
+conf
+```
+
+
+
+Problem 4 
+
+Assumption: random and independent
+
+Hypotheses: 
+Ho: There is no difference between delivery times between Papa Murphy's and Dominos
+Ha: Papa Murphy's delivery times are quicker than Dominos 
+
+
+a) Because our pvalue is higher than 0.05 significance, we can conclude that there is no significance evidence that Papa Murphy's has faster delivery times 
+```{r}
+dominos = c(17, 20, 21, 24, 26) 
+papa = c(18,22)
+
+obs.diff4 = mean(papa) - mean(dominos)
+obs.diff4
+
+differences4 = c(mean(c(17,20)) - mean(c(18, 22, 21,24,26)),
+                mean(c(17,21)) -  mean(c(20, 24,26, 18,22)),
+                mean(c(17,24)) -  mean(c(20,21,26,18,22)), 
+                mean(c(17,26)) - mean(c(20,21,24,18,22)), 
+                mean(c(17,18)) - mean(c(20,21,24,26,22)), 
+                mean(c(17,22)) - mean(c(20,21,24,26,18)), 
+                mean(c(20,21)) - mean(c(17,24,26,18,22)),
+                mean(c(20,24)) - mean(c(17,21,26,18,22)),
+                mean(c(20,26)) - mean(c(17,21,24,18,22)),
+                mean(c(20,18)) - mean(c(17,21,24,26,22)),
+                mean(c(20,22)) - mean(c(17,21,24,26,18)),
+                mean(c(21,24)) - mean(c(17,20,26,18,22)),
+                mean(c(21, 26)) - mean(c(17,20,24,18,22)),
+                mean(c(21, 18)) - mean(c(17,20,24,26,22)),
+                mean(c(21,22)) -  mean(c(17,20,24,26,18)),
+                mean(c(24,26)) - mean(c(17,20,21,18,22)),
+                mean(c(24,18)) - mean(c(17,20,21,26,22)), 
+                mean(c(24,22)) - mean(c(17,20,21,26,18)), 
+                mean(c(26,18)) - mean(c(17,20,21,24,22)),
+                mean(c(26,22)) - mean(c(17,20,21,24,18)), 
+                mean(c(18,22)) - mean(c(17,20,21,24,26)))
+differences4
+
+pvalue = mean(differences4 <= obs.diff4)
+pvalue
+```
+
+b) We fail to reject because our pvalue is greater than 0.05, therefore we can conclude that there is no significant evidence that Papa Murphy's has faster delivery time. 
+
+```{r}
+library(readr)
+table <- read_delim("C:/Users/SAMSUNG/Desktop/pizza.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
+
+```{r}
+
+n = 5000
+rand.dist4 = rep(NA, n) 
+
+for(i in 1:n)
+{
+  sample.group4 = sample(table$brand) 
+  rand.dist4[i] = mean(table$time[sample.group4 == "papa"]) - mean(table$time[sample.group4 == "domino"])
+}
+
+hist(rand.dist4)  ## We see that the histogram is bell-shaped 
+
+pval4 = mean(rand.dist4 <= obs.diff4)
+pval4
+```
+
+
+
+c) We see that the exact test is closer to the answer that we got in HW1 because the exact test gave us 0.333 and part b gave us 0.336 and HW1 gave us 0.298. 
+
+
+d) We are 95% confident that the true difference in the delivery time is less than 1.6 minutes
+```{r}
+n= 5000
+
+dominos.dist = rep(NA, n) 
+papa.dist = rep(NA, n) 
+
+boot.dist.diff4d = rep(NA, n) 
+
+for (i in 1:n)
+{
+  boot.sample4d = sample(dominos, 5, replace = TRUE)
+  dominos.dist[i] = mean(boot.sample4d)
+  
+  boot.sample4d2 = sample(papa, 2, replace = TRUE)
+  papa.dist[i] = mean(boot.sample4d2)
+  boot.dist.diff4d[i] = papa.dist[i] - dominos.dist[i]
+}
+
+hist(boot.dist.diff4d) ## the histogram is bell-shaped and symmetric 
+
+quantile(boot.dist.diff4d, 0.95)
+```
+
+
+Problem 5 
+
+Hypotheses: 
+Ho: There is no difference between 95 degree and 100 degree in thickness of the wafers
+Ha: 100 degree has lower mean photoresist thickness than 95 degree 
+
+Assumption: random, independent 
+
+Conclusion: We would reject the null hypothesis because the upper.p is less than 0.05 significance level, therefore there is strong evidence that 100 degree has lower mean photoresist thickness than 95 degree. 
+```{r}
+first = c(11.176, 7.089, 8.097, 11.739, 11.291, 10.759, 6.467, 8.315)
+second = c(5.263, 6.748, 7.461, 7.015, 8.1333, 7.418, 3.772, 8.963)
+
+library(cfcdae)
+permsign.test(first-second, plot=TRUE)
+
+```
+
+
+b) We are 95% confident that the true difference in photoresist thickness is greater than 0.97 unit, in favor of the lower baking temperature. 
+```{r}
+set.seed(4051)
+
+n = 5000
+
+first.dist = rep(NA, n) 
+second.dist = rep(NA, n) 
+
+boot.dist.diff5 = rep(NA, n)
+
+for (i in 1:n) 
+{
+  boot.sample5 = sample(first, 8, replace = TRUE) 
+  first.dist[i] = mean(boot.sample5)
+  
+  boot.sample.52 = sample(second, 8, replace = TRUE)
+  second.dist[i] = mean(boot.sample.52)
+  boot.dist.diff5[i] = first.dist[i] - second.dist[i]
+}
+
+hist(boot.dist.diff5) ## the histogram is bell-shaped and symmetric 
+
+difference5 = mean(first) - mean(second)
+lower = mean(difference5) + qt(0.05, 14)*sd(boot.dist.diff5)
+lower
+```
+
+
+Extra Credit 
+
+```{r}
+extra = read.csv('improvement.csv')
+```
+
+```{r}
+library(lmPerm)
+result <- summary(aovp(extra$improvement ~ as.factor(extra$ï..expenditures), perm = "Exact", seqs = FALSE))
+```
+
+
+
+```{r}
+n=5000
+set.seed(4051)
+counter = 0
+samp.f = numeric(5000)
+model = anova(lm(extra$improvement ~ extra$ï..expenditures))
+obt.F = model$"F value"[1]
+
+
+for (i in 1:n) 
+{
+  new1 = sample(extra$improvement)
+  new2 = anova(lm(new1~extra$ï..expenditures))
+  
+  samp.f[i] = new2$"F value"[1]
+  if(samp.f[i] > obt.F) counter = counter+1
+}
+
+pvalue9 = counter/n
+```
+
+
+
+
+
+
+

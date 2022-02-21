@@ -1,0 +1,281 @@
+---
+title: "STAT 4051 HW 1"
+author: "Jong Hyun Choi"
+date: "9/13/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+Problem 1 
+
+a) 
+
+Assumptions: both popoulations are random samples, independent, and have at least 10 successes and 10 failures in both groups
+Also, n1p1 >= 10, n1(1-p1)>= 10 
+n2p2 >=10, n2(1-p2)>=10
+```{r}
+100*(90/100)
+(100)*(1-0.9)
+
+110*(11/110)
+110*(1-(11/110))
+```
+
+p1 = subject has cancer 
+p2 = subject does not have cancer
+
+Hypotheses: 
+Ho: p1 - p2 = 0 
+Ha: p1-p2>0 
+
+Test statistic: 11.58836
+```{r}
+p1 = 90/100
+p2 = 11/110
+phat = (100*p1 + 110*p2)/(110+100)
+z = sqrt((phat*(1-phat)) * ((1/100) + (1/110)))
+z
+numerator = p1 - p2
+a = numerator / z
+a
+```
+
+Pvalue: 0 
+```{r}
+pvalue = 1- pnorm(a)
+pvalue
+```
+Decision: Because our pvalue was so small that it gave out 0, and since 0 is less than our significance level of 0.01, we reject the null hypothesis. Therefore, there is strong evidence that Ho is not true, namely, the dogs are more likely to sit for subject who has cancer than for subjects who does not have ccancer. 
+
+
+b) We are 95% confident that these values 0.6932223 to 0.9067777 capture the true difference between the two groups 
+
+```{r}
+y = sqrt((p1*(1-p1))/100 + (p2*(1-p2))/110)
+upper = (p1 - p2) + 2.576*y
+lower = (p1 - p2) - 2.576*y
+```
+
+
+
+Problem 2 
+a) 
+Assumptions: observations x1, ..., xn are a random sample and iid following a Normal distribution
+
+Hypotheses: 
+Ho: μ = 120
+Ha: μ > 120
+
+
+Test statistc: 1.779758
+```{r}
+data1 = c(108,124,124,106,115,138,163,159,134,139)
+s = sd(data1)
+(131-120)/(s/sqrt(10))
+```
+
+Pvalue: 0.05440889
+
+```{r}
+1-pt(1.779758, 9)
+```
+
+Decision: Because our pvalue is greater than 0.05 significance level, we fail to reject the null hypothesis, so therefore we don't have enough evidence that the mean shelf life exceed 120 days. 
+
+
+b) The 95% confidence interval is between 117.0194 and infinity
+Yes because we failed to reject, and we do see that μ=120 is in the confidence interval, and therefore I agree with the results of my statistical test in part a. 
+```{r}
+lower = 131 - 2.262*(s/sqrt(10))
+```
+
+
+Problem 3   
+
+a)
+Assumption: Observations x11,...,x1n1 and x21,...,x2n2 are random samples from two distinct normal populations N(μ1, σ1^2) and N(μ2, σ2^2), and iid
+
+
+Hypotheses: 
+Ho: μ1 - μ2 = 10 
+Ha: μ1 - μ2 > 10
+
+
+Test Statistic:
+Since s1 = 1 and s2 = 1.05, and as a rule of thumb, if σ1 > 2σ2 then we use Welch's test 
+Since 1 is not greater than 2.1 we have to use pooled standard deviation with equal variance method
+
+
+```{r}
+n31 = 10 ; n32 = 12; y1 = 162.5 ; y2 = 155.0 ; s31 = 1 ; s32 = 1.05
+
+sp = sqrt((((n31 - 1)*s31) + ((n32-1)*s32)) / (n31+n32-2))
+sp
+
+teststat = (y1 - y2-10)/(sqrt(((s31)/n31)+((s32)/n32)) * sp)
+teststat
+```
+
+P-value: 0.9999929
+```{r}
+df3 = 10+12-2
+1 - pt(teststat, df3)
+```
+
+Decision: Because our pvalue is almost 1, which is greater than our significance level of 0.01, we fail to reject the null hypothesis, so therefore we don't have enough evidence that plastic 1 doesn't exceed plastic 2 by 10 psi
+
+
+
+b) We are 99% confident that these values 6.4 to infinity capture the true difference between the two groups. And because 10 is included in our confidence interval, and we failed to reject, we shouldn't use plastic 1.
+```{r}
+lower1 = y1-y2 -2.528*sp*sqrt((1/10)+(1/12))
+lower1
+```
+
+
+Problem 4 
+
+a) 
+Assumption: We need to relax the normal distribution assumption because our n is less than 30, so we assume that this is a normal distribution with iid and are random. 
+
+Hypotheses: 
+Ho: μ1 - μ2 = 0
+Ha: μ1-μ2 < 0
+
+
+Test statistic: 0.5654
+P-value: 0.2981
+```{r}
+xone = c(17,20,21,24,26)
+xtwo = c(18,22)
+t.test(xone, xtwo, var.equal = TRUE, mu = 0, alternative = "greater")
+```
+
+
+Conclusion: We would fail to reject the null hypothesis because our pvalue is greater than our significance level of 0.05
+Therefore we don't have strong enough evidence that the delivery times of Papa Murphy's are quicker than Dominos
+
+
+b) We are 95% confident the values from -4.102266 to infinity capture the true difference between the two groups
+
+
+Problem 5 
+
+a) We can see that the box on the 95 degree is higher than the 100 degree. Therefore, we will see a higher median, IQR range is wider. 
+```{r}
+first = c(11.176, 7.089, 8.097, 11.739, 11.291, 10.759, 6.467, 8.315)
+second = c(5.263, 6.748, 7.461, 7.015, 8.1333, 7.418, 3.772, 8.963)
+title = c("95 degree Celsius", "100 degree Celsius")
+boxplot(first,second,  names = title)
+```
+
+
+b) 
+Assumption: Oberversations are random, iid, and follows a normal distribution. 
+
+
+Hypotheses: 
+Ho: μ1 - μ2 = 0
+Ha: μ1-μ2 > 0
+
+
+Test Statistic: 3.151
+P-value: 0.008064
+```{r}
+t.test(first, second, paired = TRUE, var.equal = TRUE, alternative = "greater")
+```
+
+Conclusion: Because our p-value is less than 0.05, we reject the null hypothesis. Therefore, there is strong evidence that Ho is not true, namely, strong evidence that higher baking temperature results in wafers with a lower mean photoresist thickness. 
+
+c) We are 95% confident that the values from  1.004826 to Inf capture the true difference between the 95 degree and 100 degree. Because 0 is not included in our confidence interval, we can reject the null hypothesis, which agrees with the results that I got in part b
+
+
+Problem 6 
+
+Assumptions: We assume that the observations are random, iid and since we see that our n>30, we can assume that it follows a normal distribution. 
+
+Hypotheses: 
+p1: opinionated responses
+p2: not opinionated responses
+
+Ho: p1 - p2 = 0 
+Ha: p1 -p2 > 0 
+
+Test statistic: 
+```{r}
+p61 = (15+150)/500
+p62 = (135+125+75)/500
+phat6 = (165*p61 + 335*p62)/(165+335)
+uh = sqrt((phat6*(1-phat6)) * ((1/165)+ (1/335)))
+uh 
+
+numerator1 = p61 - p62
+aa = numerator1 / uh
+aa
+```
+
+P-value
+```{r}
+1-pnorm(aa)
+```
+
+
+Conclusion: Because our pvalue is greater than our significance level of 0.05, we fail to reject the null hypothesis. Therefore, we don't have strong evidence that American votes have not become more opinionated. 
+
+
+
+Problem 7
+a) 
+Assumption: We assume that the observations random, iid and because we see that our sample size (n) > 30, we can say that it follows a normal distribution
+
+Hypotheses: 
+Ho: p1 - p2 = 0
+Ha: p1 - p2 =/ 0
+
+
+Test Statistc: 
+```{r}
+p71 = 0.255
+p72 = 0.214
+phat7 = (200*p71 + 200*p72) / (400)
+um = sqrt((phat7*(1-phat7)) * ((1/200) + (1/200)))
+um 
+
+numerator2 = p71- p72
+bb = numerator2 / um 
+bb
+```
+
+
+P-Value: 
+```{r}
+2*(1-pnorm(abs(bb)))
+```
+
+
+Conclusion: 
+Because our pvalue is greater than our significance level of 0.05, we fail to reject the null hypothesis. Therefore, we dont' have strong evidence that there is any difference between men and women 
+
+
+b) We are 95% confident that the values from -0.042 to 0.124 capture the true difference between the men and women. Because 0 is included in our confidence interval, we fail to reject the null hypothesis, which agrees with the results that I got in part a 
+```{r}
+see = sqrt(((p71*(1-p71))/200) + ((p72*(1-p72))/200))
+see
+
+
+upper7 = p71 - p72 + (1.96*see)
+lower7 = p71 - p72 - (1.96*see)
+upper7
+lower7
+```
+
+
+c) 99% confidence interval would be wider than the 95% confidence interval because 99% confidence interval takes up wider ranges of values in the distribution(extends to left and right more), therefore, we would see a wider interval. 
+```{r}
+upper7c = p71 - p72 + (2.576*see)
+lower7c = p71 - p72 - (2.576*see)
+
+upper7c
+lower7c
+```

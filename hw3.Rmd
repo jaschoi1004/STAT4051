@@ -1,0 +1,356 @@
+---
+title: "Homework 3"
+author: "Jong Hyun Choi"
+date: "10/3/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+Problem 1 
+a) 
+PUT IN THE TABLEEEEEE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Assumption: indepdent observations and independent groups, constant variances across the various groups, data is normally distributed in each group. 
+
+Hypotheses: 
+H0: µ1=µ2=µ3=µ4=µ5
+Ha: at least one µi =/ µj
+
+
+```{r}
+data = c(3.2892, 10.256, 8.1157, 8.1825, 7.5622)
+mse = 4.012
+mean(data)
+
+ssg = ((data[1] - mean(data))^2 + (data[2] - mean(data))^2 + (data[3] - mean(data))^2 + (data[4] - mean(data))^2 + (data[5] - mean(data))^2)
+
+sse = mse * 15
+
+sst = sse+ssg
+
+msg = ssg / 4 
+
+f = msg/mse
+pval = pf(f, 4,15, lower.tail = FALSE)
+pval
+```
+
+
+P-value: 0.2181587
+
+Conclusion: Because our p-value is greater than 0.05 significance level, we fail to reject the null hypothesis. Therefore, there is no significant evidence that the treatments have the same mean
+
+
+
+b) 
+Assumption: indepdent observations and independent groups, constant variances across the various groups, data is normally distributed in each group. 
+
+Ho: (µ1-µ2)/2 - (µ3-µ4-µ5)/3 = 0 
+Ha: (µ1-µ2)/2 - (µ3-µ4-µ5)/3 =/ 0 
+
+Conclusion: Because our pvalue is greater than 0.05 significance level, we fail to reject the null hypothesis. Therefore, there is no significant evidence that the treatments 1 and 2 has the same as the average response in treatments 3, 4, and 5
+```{r}
+mu1 = 3.2892
+mu2 = 10.256
+mu3 = 8.1157
+mu4 = 8.1825
+mu5 = 7.5622
+
+score = ((mu1+mu2)/2) - ((mu3+mu4+mu5)/3)
+
+m = mse * ((((2*(1/2)^2)+(3*(1/3)^2))/4))
+sd = sqrt(m)
+t = score / sd
+pval = 2*pt(t, 15)
+pval
+```
+
+
+c) SOo the pairs that are greater than 1.56 are mu2 - mu3, mu2 - mu4 ,and mu2 - mu5. Therefore, these three pairs are the ones that are different, meaning that they're significant under 0.05 significance level. 
+
+```{r}
+mu1 - mu2
+mu1 - mu3 
+mu1 - mu4 
+mu1 - mu5 
+mu2 - mu3
+mu2 - mu4 
+mu2 - mu5 
+mu3 - mu4
+mu3 - mu5 
+mu4 - mu5
+```
+
+
+```{r}
+x = qtukey(0.95, 5, 120)
+
+y = sqrt(mse/25)
+
+x*y
+```
+
+
+
+Problem 2 
+a) 
+Assumption: random sample,, observations are independent, obbservations are normally distributed, equal variance among groups 
+
+Hypotheses: 
+Ho: µ1 = µ2 = µ3
+Ha: at least one µi =/ µj 
+
+```{r}
+data2 = read.csv("improvement.csv")
+```
+
+```{r}
+summary(aov(improvement ~ ï..expenditures, data = data2))
+```
+P-value: 4.33e-05 
+
+Conclusion: we see that since our p-value is less thatn our significance level of 0.05, we reject the null hypothesis.Therefore, we have signifiance evidence tha there is difference between the level of expenditures with regard to improvement. 
+
+
+b) The assumptions are that there is a random sample, observations are independent, observations are normally distributed, and there's equal variance among g groups 
+
+We see that the residuals vs. fitted plot verifies the constant variance assumption; we see relatively even vertical spread in the residuals with no disturbing fluctuations that would suggest misspecified variance.
+
+The normal Q-Q plot verifies the normality assumptions; the points fall close to the 45 degree line with small
+deviations at the tails, meaning the distribution of the standardized residuals is consistent with a normal
+distribution.
+```{r}
+par(mfrow=c(1,2))
+plot(lm(improvement ~ ï..expenditures, data = data2), which =c(1,2))
+```
+
+
+c) I1 = { 1 if expenditures Low  ; 0 if otherwise}
+I2 = {1 if expenditures Moderate ; 0 if otherwise}
+
+yij = beta1 + beta1 * I1 + beta2 * I2 + eij 
+```{r}
+one.way.lm = lm(data2$improvement ~ data2$ï..expenditures) 
+summary(one.way.lm)
+```
+
+```{r}
+tapply(data2$improvement, data2$ï..expenditures, mean)
+```
+
+
+d) These rows are testing against the intercept (expenditures High). So the expenditures Low would test against the expenditures High, and expenditures Moderate would test against expenditures High. 
+The estimates of High is the mean of y1. The estimate of Low is y2bar. - y1bar. And the estimate of Moderate is y3bar. - y1bar. 
+Then to get the t value, you divide the estimate by the se. 
+
+e)
+```{r}
+s = sqrt(0.64)
+se1 = s/sqrt(6)
+se2 = s * (sqrt((1/9) + (1/6)))
+se3 = s * (sqrt((1/12) + (1/6)))
+```
+
+
+f) l1 = c(1,-1,0) 
+l2 = c(-1,-1,2)
+```{r}
+
+one.way.lm$coefficients
+p1=one.way.lm$coefficients[1]
+p2=one.way.lm$coefficients[1]+one.way.lm$coefficients[2]
+p3=one.way.lm$coefficients[1]+one.way.lm$coefficients[3]
+
+j=(((1)*p1 + (-1)*p2 + (0)*p3)^2)/((((1)^2)/6)+(((-1)^2)/12)+(((0)^2)/9))
+k=(((-1)*p1 + (-1)*p2 + (2)*p3)^2)/ (( ((-1)^2)/6) +(((-1)^2)/12) +(((2)^2)/9))
+j+k 
+```
+
+
+
+
+
+
+Problem 3 
+```{r}
+pr3.2<-read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/pr3.2",header=TRUE)
+trt = as.factor(pr3.2$trt)
+pr3 = data.frame(trt , days = pr3.2$days)
+
+```
+
+
+a) Assumption: random sample,, observations are independent, obbservations are normally distributed, equal variance among groups. 
+We also see that the variance is constant, normal, and indepdent 
+```{r}
+summary(aov(pr3$days~pr3$trt))
+
+plot(lm(pr3$days~pr3$trt))
+```
+
+
+
+b) 
+```{r}
+library(multcomp)
+
+one.way.anova.lm = lm(days ~ trt, data = pr3)
+
+g1 = matrix(c(0,1, 0, 0, 0), 1)
+lin.contrast1 = glht(one.way.anova.lm, linfct = g1) 
+summary(lin.contrast1)
+
+
+g2 = matrix(c(0,0, 1, 0, 0), 1)
+lin.contrast2 = glht(one.way.anova.lm, linfct = g2) 
+summary(lin.contrast2)
+
+
+g3 = matrix(c(0,0, 0, 1, 0), 1)
+lin.contrast3 = glht(one.way.anova.lm, linfct = g3) 
+summary(lin.contrast3)
+
+
+g4 = matrix(c(0,0, 0, 0, 1), 1)
+lin.contrast4 = glht(one.way.anova.lm, linfct = g4) 
+summary(lin.contrast4)
+
+```
+
+
+c) Comparing both part b and c, we see that we get the same answers. 
+```{r}
+
+pr3$trt = relevel(trt, ref = 1) 
+
+m1 = lm(days ~ trt, data = pr3) 
+test.dunnett = glht(m1, linfct = mcp(trt='Dunnett'), alternative = "two.sided")
+summary(test.dunnett)
+
+```
+
+
+d) Since all the sample sizes are equal, we know that the maximum number of orthogonal contrasts there could is k-1. Therefore, the maximum number of orthogonal contrast is 4. 
+
+
+e) Our confidence interval is (0.4678376, 15.97216)
+```{r}
+tapply(pr3$days, pr3$trt, mean)
+
+(0.25)*63.56 + (0.25)*(64.80) - (0.25)*(56.76) - (0.25)*(38.72)
+
+sqrt(219.3) * (sqrt((1/50) + (1/50)))
+qt(0.995, 120 )
+
+upper = 8.22 + (2.617421*2.961756)
+lower = 8.22 - (2.617421*2.961756)
+
+upper
+lower
+```
+
+
+
+
+f) We can also use Scheffe's test to find something that might be different. 
+
+
+
+g) 
+```{r}
+rate = 1-(1-0.01)^5
+rate
+```
+
+
+
+
+h) We see that the Tukey is more conservative in this case because we see a wider confidence interval than the Bonferroni. 
+Therefore, we recommend the Bonferroni because it gives us a shorter confidence interval
+```{r}
+mse3 = 219.3
+se = sqrt(mse)*sqrt((1/25)+(1/25))
+prob = tapply(pr3$day, pr3$trt, mean)
+
+B = 1-qt(.99/(2 * 10), 120)
+s4 = sqrt(mse)*sqrt((1/25)+(1/25))
+bon.upper1 = prob[2]-prob[1] + (B * se)
+bon.lower1 = prob[2]-prob[1] - (B * se)
+
+c1 = c(bon.lower1, bon.upper1)
+
+
+bon.upper2 = prob[3]-prob[1] + (B * se)
+bon.lower2 = prob[3]-prob[1] - (B * se)
+
+c2 = c(bon.lower2, bon.upper2)
+
+bon.upper3 = prob[4]-prob[1] +(B * se)
+bon.lower3 = prob[4]-prob[1] - (B * se)
+
+c3 = c(bon.lower3, bon.upper3)
+
+bon.upper4 = prob[5]-prob[1] + (B * se)
+bon.lower4 = prob[5]-prob[1] - (B * se)
+
+c4 = c(bon.lower4, bon.upper4)
+
+bon.upper5 = prob[3]-prob[2] + (B * se)
+bon.lower5 = prob[3]-prob[2] - (B * se)
+
+c5 = c(bon.lower5, bon.upper5)
+
+bon.upper6 = prob[4]-prob[2] + (B * se)
+bon.lower6 = prob[4]-prob[2] - (B * se)
+
+c6 = c(bon.lower6, bon.upper6)
+
+bon.upper7 = prob[5]-prob[2] + (B * se)
+bon.lower7 = prob[5]-prob[2] - (B * se)
+
+c7 = c(bon.lower7, bon.upper7)
+
+bon.upper8 = prob[4]-prob[3] + (B * se)
+bon.lower8 = prob[4]-prob[3] - (B * se)
+
+c8 = c(bon.lower8, bon.upper8)
+
+bon.upper9 = prob[5]-prob[3] + (B * se)
+bon.lower9 = prob[5]-prob[3] - (B * se)
+
+c9 = c(bon.lower9, bon.upper9)
+
+bon.upper10 = prob[5]-prob[4] + (B * se)
+bon.lower10 = prob[5]-prob[4] - (B * se)
+
+c10 = c(bon.lower10, bon.upper10)
+
+c1
+c2
+c3
+c4
+c5
+c6
+c7
+c8
+c9
+c10
+```
+
+
+
+```{r}
+one.way.anova3 = aov(pr3$days ~ pr3$trt, data = pr3)
+one.way.anovah = TukeyHSD(one.way.anova3, conf.level = 0.99)
+one.way.anovah
+```
+
+
+
+
+
+
+
+
+

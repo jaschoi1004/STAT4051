@@ -1,0 +1,212 @@
+---
+title: "HW 4"
+output:
+  word_document: default
+  html_document: default
+---
+
+Problem 1
+```{r}
+pr8.4<- read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/pr8.4",header=TRUE)
+pr8.4$flow = as.factor(pr8.4$flow)
+pr8.4$temp = as.factor(pr8.4$temp)
+pr8.4$laser = as.factor(pr8.4$laser)
+```
+
+
+Assumption: We assume the standard three-way ANOVA model with interaction, with independent errors. We verify the assumptions of normality and constant variance with plots below:
+
+```{r}
+mod1 = aov(y ~ flow+temp+laser, data = pr8.4)
+plot(mod1,which=c(1,2))
+## Both the constant variance and QQ plot looks good 
+
+anova(mod1)
+```
+
+
+Hypotheses:
+Ho: All flow are the same 
+Ha: At least one flow is different 
+
+Ho: All temp are the same 
+Ha: At least one temp is different 
+
+Ho: All laser are the same 
+Ha: At least one laser is different 
+
+
+Conclusion: At the α = .05 level, we see that temp had a significance, therefore, we only have significant evidence of the temp treatment affecting delamination. 
+
+
+We can look at the interaction plot 
+
+The graphical method indicates that there is an interaction between flow and laser, but our statistical method was insignificant. 
+```{r}
+with(pr8.4,interaction.plot(temp,flow,y))
+with(pr8.4,interaction.plot(temp,laser,y))
+with(pr8.4,interaction.plot(flow,laser,y))
+
+```
+
+2.
+Assumption:  We assume the standard three-way ANOVA model with interaction, with independent errors. We verify the assumptions of normality and constant variance with plots below:
+
+```{r}
+mod9 = aov(y ~ flow*temp*laser, data = pr8.4)
+plot(mod9,which=c(1,2))
+```
+
+Hypotheses:
+Ho: All flow are the same 
+Ha: At least one flow is different 
+
+Ho: All temp are the same 
+Ha: At least one temp is different 
+
+Ho: All laser are the same 
+Ha: At least one laser is different
+
+Ho: All interactions are the same 
+Ha: At least one interaction is different 
+
+```{r}
+anova(mod9)
+```
+We see that the temp is lower than 0.05 significance level, so we reject the null hypothesis. Therefore, we can say that we have strong evidence that the temp has an effect on delamination. 
+
+
+
+Problem 2 
+
+```{r}
+pr8.5 = read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/pr8.5",header=TRUE)
+pr8.5$shape = as.factor(pr8.5$shape)
+pr8.5$trt = as.factor(pr8.5$trt)
+```
+
+
+Assumption: We assume the standard two-way ANOVA model with interaction, with independent errors. We verify the assumptions of normality and constant variance with plots:
+
+```{r}
+mod2 = lm(y ~ shape*trt, data = pr8.5)
+plot(mod2,which=c(1,2))
+```
+
+
+Hypotheses: 
+Ho: αshape = 0 vs H1: αshape =/ 0 
+H0: βtrt = 0 vs H1: βtrt =/ 0 
+
+
+```{r}
+anova(mod2)
+```
+
+Conclusion: We see a significance in shape and treatment, therefore, we have significant evidence that both shape and treatment have an effect on resin 
+
+
+```{r}
+## We can visualize
+
+##The interaction plot shows no interaction which is same as what we concluded. 
+with(pr8.5,interaction.plot(shape,trt,y))
+```
+
+
+Problem 3 
+
+```{r}
+pr9.1 = read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/pr9.1",header=TRUE)
+pr9.1$method = as.factor(pr9.1$method)
+pr9.1$time = as.factor(pr9.1$time)
+pr9.1$type = as.factor(pr9.1$type)
+```
+
+
+Assumption: We assume the standard three-way ANOVA model with interaction, with independent errors. We verify the assumptions of normality and constant variance with plots:
+
+
+
+```{r}
+#The assumption of normality and variance looks violated, so we're going try transformations 
+mod3 = lm(y ~ method+time+type, data = pr9.1)
+plot(mod3,which=c(1,2))
+```
+
+Hypotheses: 
+Ho: All method are the same 
+Ha: At least one method is different 
+
+Ho: All time are the same 
+Ha: At least one time is different 
+
+Ho: All type are the same 
+Ha: At least one type is different 
+
+
+```{r}
+## log transform
+mod4 = lm(log(y) ~ method+time+type, data = pr9.1)
+par(mfrow = c(1,2))
+plot(mod4,which=c(1,2))
+
+## sqrt transform
+tranmod1 = lm(sqrt(y) ~ method+time+type, data = pr9.1)
+par(mfrow= c(1,2))
+plot(tranmod1, c(1,2))
+
+## Box Cox transform
+library(car)
+boxCox(tranmod1)
+modd1 = lm(y^-2 ~ method+time+type, data = pr9.1)
+plot(modd1, c(1,2))
+```
+
+
+It looks like the log transformation has the best transformation of the data because the variance bands look smoother 
+and the QQ plot looks a little smoother than before. 
+```{r}
+anova(mod4)
+```
+
+Conclusion: At a 0.05 significance level, we reject method, time, and type. Therefore, we have significant evidence that method, time, and type all have an effect on the storage time. 
+
+
+Problem 4 
+
+```{r}
+p10.3= read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/pr10.3",header=TRUE)
+p10.3$gum = as.factor(p10.3$gum)
+p10.3$protein = as.factor(p10.3$protein)
+```
+
+
+Assumption: Because the data is unbalanced, we are going to use Type II SS as there were some missing values in the dataset
+
+Hypotheses: Ho: αgump = 0 vs H1: αgum =/ 0 
+H0: βprotein = 0 vs H1: βprotein =/ 0 
+
+
+
+```{r}
+Anova(lm(response ~ gum*protein, data = p10.3), type = 2)
+```
+
+We see gum p-value is lower than 0.05 significance level, therefore, we reject the null hypothesis. Meaning, that we have strong evidence that gum has an effect on the sensory rating. 
+
+```{r}
+## We see that gum2 had a significance, meaning that it differed the most in their sensory ratings
+summary(lm(response ~ gum*protein, data = p10.3))
+```
+
+
+We can also look at the visualizations
+From our graphical procedure, we do see an interaction, but from our statistical procedure we didn't. This might be because graphical procedures help you interpret the interaction effects, but statistical procedures actually determine whether the effect is statistically significant or not. 
+
+```{r}
+with(p10.3,interaction.plot(gum, protein,response))
+```
+
+
+

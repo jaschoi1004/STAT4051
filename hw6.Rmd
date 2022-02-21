@@ -1,0 +1,293 @@
+---
+title: "Homework 6"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+data = read.csv("CashOffer.csv")
+library(car)
+```
+
+Problem 1 
+
+a)
+We see that from the results, the p-values aren't significant. Therefore, the treatment doesn't affect the covariate 
+We see that the sales volume is the covariate and it is statistically significant at pvalue = 4.11e-05
+
+```{r}
+data$age = as.factor(data$age)
+data$gender = as.factor(data$gender)
+
+mod5 = lm(offer ~ sales.volume, data = data) 
+summary(mod5); anova(mod5)
+
+mod6 = lm(sales.volume ~ age, data = data)
+summary(mod6); anova(mod6) 
+
+mod7 = lm(sales.volume ~ gender, data = data) 
+summary(mod7); anova(mod7) 
+
+```
+Because the interaction is not significant, we use the parallel lines model 
+```{r}
+mod2 = aov(offer~ sales.volume*age*gender, data = data)
+summary(mod2)
+anova(mod2)
+```
+Now we're going to check the assumptions 
+
+```{r}
+## the assumptions look pretty good, but not great, so we're going to try BoxCox 
+modex1 = lm(offer~sales.volume + age + gender, data = data)
+plot(modex1, c(1,2))
+```
+
+
+```{r}
+## from the BoxCox, the maximizing power transformation is about 1.5, which is pretty close to 1, so it’s unlikely to offer any improvement, but we can try looking at it
+library(car)
+boxCox(modex1)
+
+
+## we see that using BoxCox, we saw a little improvement, but not a significant one.
+example = lm(offer^1.5~sales.volume + age + gender, data = data)
+plot(example, c(1,2))
+```
+
+
+
+```{r}
+anova(modex1)
+```
+
+We see that age and gender was significant at the 0.05 significance level, therefore, both age and gender are important predictors of the cash offer. 
+
+
+b) 
+```{r}
+final = (lm(offer~sales.volume + age+gender, data = data))
+anova(final)
+summary(final)
+```
+
+yijk(hat) = 18.16695 + 1.07393sales.volume  + 5.19676 (AgeMiddle) - 0.63062(AgeYoung) + 0.41383(GenderMale)
+
+
+c) The experimental design would be two- way anova
+age: categorical variable with no linear relationship with covariate
+gender: categorical variable with no linear relationship with covariate
+
+
+d)
+```{r}
+#levels(data$age) = list("Young" = 1, "Middle" =2, "Elderly" =3)
+```
+
+```{r}
+plot(offer~sales.volume, col =age, pch =19, data = data)
+
+abline(a = 18.16695, b =1.07393, col = "pink") 
+abline(a = 18.16695 + 5.19676, b =1.07393, col = "yellow") 
+abline(a = 18.16695 + 5.19676 +  0.41383, b =1.07393, col = "blue") 
+
+abline(a = 18.16695 - 0.63262 + 0.41383 , b =1.07393, col = "green")
+abline(a = 18.16695 - 0.63262 , b =1.07393, col = "red")
+abline(a = 18.16695 + 0.41383, b = 1.07393, col = "black")
+
+```
+
+e) 
+Young	Male :22.24388
+Middle Female : 27.65943
+Elderly Male : 22.87650
+Young Femae : 21.83005
+Middle Male : 28.07326
+Elderly Female : 22.46267
+```{r}
+newdata = data.frame("sales.volume" = rep(4,6), "age" = c("Young", "Middle", "Elderly"), "gender" = c("Male", "Female"))
+newdata
+
+predict(modex1, newdata = newdata)
+```
+
+
+
+f) There are statistical differences among age with respect to the average cash offer because the p-values among age is less than 0.05. Therefore, Middle-Elderly, Young-Elderly, and Young-Middle are different 
+
+```{r}
+TukeyHSD(aov(final))
+```
+
+g) Young female receives the smallest cash offer on average
+Middle Male receives the largest cash offer on average
+
+
+h) Including the covariate reduced the MSE from 2.39 to 0.274, so it was decreased by 2.116
+
+
+
+Problem 2 
+
+```{r}
+pr17.5 = read.table("http://www.stat.umn.edu/~gary/book/fcdae.data/pr17.5",header=TRUE)
+```
+
+
+```{r}
+pr17.5$soil.type = as.factor(pr17.5$soil.type) 
+pr17.5$distance = as.factor(pr17.5$distance)
+```
+
+```{r}
+model = lm(merc.level ~ carb.frac, data = pr17.5)
+Anova(model, type = 2)
+summary(model)
+
+model1 = lm(carb.frac ~ soil.type, data = pr17.5)
+Anova(model1, type = 2) 
+summary(model1) 
+
+model2 = lm(carb.frac ~ distance, data = pr17.5) 
+Anova(model2, type = 2) 
+summary(model2) 
+
+model3 = lm(merc.level ~ carb.frac*soil.type*distance, data = pr17.5)
+Anova(model3, type=2)
+summary(model3)
+```
+
+We see that there is significant linear relationship between soil type and the covariate
+
+Because soil type effects the covariate, so we need to adjust the covariate value for each observation by the mean of the corresponding treatment.
+
+```{r}
+pr17.5$adjfeel = resid(lm(carb.frac ~ soil.type, data = pr17.5))
+
+anova(lm(merc.level ~ adjfeel*soil.type*distance, data = pr17.5)) 
+```
+Because we see an interaction, we're going to use the separate lines model 
+
+
+```{r}
+# we see a violation for the constance variance, so we're going to try BoxCox
+
+model4 = lm(merc.level ~ adjfeel * soil.type*distance, data = pr17.5)
+plot(model4, c(1,2))
+
+bc2 = boxCox(model4)
+bc2$x[which.max(bc2$y)]
+
+
+model5 = lm(merc.level^1.5 ~ adjfeel * soil.type*distance, data = pr17.5)
+plot(model5, c(1,2))
+
+model6 = lm(log(merc.level)~adjfeel*soil.type*distance,data=pr17.5)
+plot(model6, c(1,2))
+```
+
+
+```{r}
+model7 = lm(log(merc.level)~adjfeel*soil.type*distance,data=pr17.5)
+Anova(model7, type = 2)
+summary(model7)
+```
+
+```{r}
+newdata3 = data.frame("adjfeel" = rep(mean(pr17.5$adjfeel),4), "soil.type"= as.factor(c(1,2)), "distance" = as.factor(c(1,2)))
+predict(model7, newdata = newdata3)
+```
+
+yijk(hat) = -4.30582 +  28.86672(adjfeel) + 1.30767(soil.type2) - 0.17039(distance) - 20.84113(adjfeel:soil.type2) - 245.83309I2(adjfeel:distance2) + 0.08222(soiltype2:distance2) + 250.15026(adjfeel:soiltype2:distance2)
+
+
+```{r}
+plot(pr17.5$adjfeel, log(pr17.5$merc.level), col = pr17.5$soil.type, data = pr17.5)
+abline(a = -4.30582 , b = 28.86672, col = "red")
+abline(a =-4.30582+1.30767, b = 28.86672 -20.84113, col = "yellow") 
+abline(a = -4.30582-0.17039 ,b = 28.86672 -245.83309  , col = "green")
+abline(a = -4.30582+1.30767-0.17039, b = 28.86672 -20.84113 -245.83309 + 0.08222 +250.15026 , col = "blue")
+```
+From the graph, there is statistical evidence that both soil type and the distance can be the effect on the incinerator effect on soil mercury 
+
+
+Bonus Problem 
+
+```{r}
+horse = read.csv("HorsePrices.csv")
+horse$Sex = as.factor(horse$Sex)
+```
+
+a) Price = 16505 + 17225(sexM)
+
+```{r}
+# Because our pvalue is less than 0.05 significance level, sex has a significant effect on price 
+modb = lm(Price ~ Sex, data = horse) 
+summary(modb)
+anova(modb)
+```
+
+
+```{r}
+## the assumptions look good 
+plot(modb, c(1,2))
+```
+
+
+b) 
+```{r} 
+horse$Sex = as.factor(horse$Sex) 
+
+# We see that the two covariates are significant 
+summary(lm(Price ~ Age, data = horse)) 
+summary(lm(Price ~ Height, data = horse))
+
+
+# We see that treatment doesn't effect covariate
+equation1 = lm(Age ~ Sex, data = horse)
+summary(equation1)
+equation2 = lm(Height ~ Sex, data = horse)
+summary(equation2)
+
+
+## now see if there is a treatment by covariate interaction 
+modb2 = lm(Price ~ Age*Height* Sex, data = horse) 
+summary(modb2)
+
+
+## we see that there is no significant interactions between treatment and covariate, therefore we use the parallel model 
+
+equation3 = (lm(Price~ Age + Height+ Sex, data= horse))
+anova(equation3)
+summary(equation3)
+```
+Yij(hat) =  -136941.4 - 1329.2Age + 10067.9Height + 12572.6Sexm
+If the gender is male, then we're going to see price increased by 12572.6
+
+
+c) We saw a reduction in MSE from model b from 154906927 to 112360611
+
+
+d) & e) 31869.03 = average price of male horses 
+19296.45 = average price of female horses 
+```{r}
+newdata2 = data.frame("Age" = rep(mean(horse$Age),2), "Height" = rep(mean(horse$Height),2), "Sex" = as.factor(c("m", "f")))
+newdata2
+predict(equation3, newdata = newdata2)
+```
+
+
+f) 
+```{r}
+plot(horse$Age, horse$Price, data = horse, col = horse$Sex) 
+plot(horse$Height, horse$Price, data = horse, col = horse$Sex)
+```
+
+```{r}
+plot(horse$Age, horse$Price, col = horse$Sex, data = horse) 
+abline(a = -136941.4+10067.9*(mean(horse$Height)), b = -1329.2, col = "red") 
+abline(a = -136941.4  + 12572.6+ 10067.9*(mean(horse$Height)), b = -1329.2, col = "green") 
+```
+
+
